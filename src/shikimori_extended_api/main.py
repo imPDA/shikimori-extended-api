@@ -147,17 +147,17 @@ class Client:
     @property
     def auth_url(self):
         params = {
-            'client_id': CLIENT_ID,
+            'client_id': self.client_id,
             'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob',
             'response_type': 'code',
             'scope': '',
         }
         return AUTH_ENDPOINT + '?' + '&'.join(f'{k}={v}' for k, v in params.items())
 
-    @staticmethod
     @limiter_5rps
     @limiter_90rpm
     async def _request(
+            self,
             method: str,
             url: str,
             *,
@@ -166,7 +166,7 @@ class Client:
             **kwargs,  # TODO fix empty params in kwargs!
     ):
         print(f"[{datetime.now()}] {method} {url} {headers} {kwargs}")  # TODO logging
-        headers_ = {'User-Agent': APPLICATION_NAME}
+        headers_ = {'User-Agent': self.application_name}
         headers and headers_.update(headers)  # ...IS THIS LEGAL... ?
         session = session or aiohttp.ClientSession(headers=headers_)
         async with session:
@@ -188,8 +188,8 @@ class Client:
         self.auth_code = auth_code or self.auth_code
         params = {
             'grant_type': 'authorization_code',
-            'client_id': CLIENT_ID,
-            'client_secret': CLIENT_SECRET,
+            'client_id': self.client_id,
+            'client_secret': self.client_secret,
             'code': auth_code or self.auth_code,
             'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob'
         }
