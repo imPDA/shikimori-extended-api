@@ -1,0 +1,21 @@
+from setuptools import setup
+
+requirements = []
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
+packages = [
+    'src.api',
+]
+
+setup(
+    name='shikimori-extended-api',
+    version='dev',
+
+    url='https://github.com/imPDA/shikimori-extended-api',
+    author='imPDA',
+    author_email='impda@mail.ru',
+
+    packages=packages,
+    install_requires=requirements,
+)
