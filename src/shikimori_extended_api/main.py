@@ -225,13 +225,11 @@ class Client:
 
         return info
 
-    @classmethod
-    async def get_user_info(cls, user_id: int):
-        return await cls.go().users.id(user_id).info.get()
+    async def get_user_info(self, user_id: int):
+        return await self.go().users.id(user_id).info.get()
 
-    @classmethod
     async def get_all_user_anime_rates(
-            cls,
+            self,
             user_id: int,
             *,
             status: Status = None,
@@ -239,15 +237,14 @@ class Client:
     ) -> List:
         L, p, rates = 100, 1, []  # limit per request, current page, list of rates
         while True:
-            r_ = await cls.go().users.id(user_id).anime_rates(limit=L, status=status, censored=censored, page=p).get()
+            r_ = await self.go().users.id(user_id).anime_rates(limit=L, status=status, censored=censored, page=p).get()
             rates.extend(r_[:L])
             if len(r_) <= L:
                 return rates
             p += 1
 
-    @classmethod
-    async def get_anime(cls, anime_id: int):
-        return await cls.go().animes.id(anime_id)
+    async def get_anime(self, anime_id: int):
+        return await self.go().animes.id(anime_id)
 
     async def __request_again_on_2_many_requests_ex(self, request, retries: int = 0) -> dict:
         MAX_RETRIES = 3
