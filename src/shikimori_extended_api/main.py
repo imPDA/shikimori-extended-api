@@ -18,105 +18,107 @@ GET_TOKEN_ENDPOINT = SHIKIMORI_URL + '/oauth/token'
 API_ROOT = SHIKIMORI_URL + '/api'
 
 
+class Builder:
+    def is_exists(self) -> bool:
+        resources = {
+            'achievements': None,
+            'animes': {
+                False: {
+                    '': {},
+                },
+                True: {
+                    '': {},
+                    'roles': {},
+                    'similar': {},
+                    'related': {},
+                    'screenshots': {},
+                    'franchise': {},
+                    'external_links': {},
+                    'topics': {},
+                },
+            },
+            'users': {
+                False: {
+                    '': {},
+                    'whoami': {},
+                    'sign_out': {},
+                },
+                True: {
+                    '': {},
+                    'info': {},
+                    'friends': {},
+                    'clubs': {},
+                    'anime_rates': {},
+                    'manga_rates': {},
+                    'favourites': {},
+                    'messages': {},
+                    'unread_messages': {},
+                    'history': {},
+                    'bans': {},
+                }
+            }
+        }
+
+        pattern = r'https:\/\/shikimori\.me\/api\/([a-z_]*)(?:\/(\d+))?(?:\/([a-z_]*))?'
+        groups = re.match(pattern, self.url).groups()
+        resource = groups[0]
+        id_ = bool(groups[1])
+        path = groups[2] if groups[2] else ''
+        try:
+            flag = path in resources[resource][id_]
+        except KeyError as e:
+            raise KeyError(f'Не найдено пути: {e}')
+        else:
+            if not flag:
+                raise KeyError(f'Не найдено пути: {path}')
+
+        return True
+
+    def __init__(self, client: Client, root: str = None):
+        self.client = client
+        self.url = root
+        self.params = {}
+        self.method: str = ''
+
+    def __getattr__(self, item: str):
+        match item.lower():
+            case 'get' | 'post' | 'patch' | 'put' | 'delete':  # HEAD, CONNECT, OPTIONS, TRACE
+                self.method = item.upper()
+            case 'id':
+                pass
+            case _:
+                self.url += f'/{item}'
+
+        return self.__dict__.get(item, self)
+
+    def __call__(self, some_id: int = None, **params) -> Client.request:
+        if some_id:
+            if not isinstance(some_id, int):
+                return ValueError('ID must be an integer!')
+            self.url += f'/{some_id}'
+
+        session = params.pop('session', None)
+        headers = params.pop('headers', None)
+        params = {k: v for k, v in params.items() if v}
+        self.params.update(params)
+
+        if self.method:
+            if not self.is_exists():
+                raise
+            return self.client.request(
+                self.method,
+                self.url,
+                session=session,
+                headers=headers,
+                params=self.params,
+            )
+        else:
+            return self
+
+
 class Client:
     limiter_5rps = Limiter(5, 1, name="5rps")
     limiter_90rpm = Limiter(90, 60, name="90rpm")
-
-    class Builder:
-        def is_exists(self) -> bool:
-            resources = {
-                'achievements': None,
-                'animes': {
-                    False: {
-                        '': {},
-                    },
-                    True: {
-                        '': {},
-                        'roles': {},
-                        'similar': {},
-                        'related': {},
-                        'screenshots': {},
-                        'franchise': {},
-                        'external_links': {},
-                        'topics': {},
-                    },
-                },
-                'users': {
-                    False: {
-                        '': {},
-                        'whoami': {},
-                        'sign_out': {},
-                    },
-                    True: {
-                        '': {},
-                        'info': {},
-                        'friends': {},
-                        'clubs': {},
-                        'anime_rates': {},
-                        'manga_rates': {},
-                        'favourites': {},
-                        'messages': {},
-                        'unread_messages': {},
-                        'history': {},
-                        'bans': {},
-                    }
-                }
-            }
-
-            pattern = r'https:\/\/shikimori\.me\/api\/([a-z_]*)(?:\/(\d+))?(?:\/([a-z_]*))?'
-            groups = re.match(pattern, self.url).groups()
-            resource = groups[0]
-            id_ = bool(groups[1])
-            path = groups[2] if groups[2] else ''
-            try:
-                flag = path in resources[resource][id_]
-            except KeyError as e:
-                raise KeyError(f'Не найдено пути: {e}')
-            else:
-                if not flag:
-                    raise KeyError(f'Не найдено пути: {path}')
-
-            return True
-
-        def __init__(self, root: str = None):
-            self.url = root
-            self.params = {}
-            self.method: str = ''
-                
-        def __getattr__(self, item: str):
-            match item.lower():
-                case 'get' | 'post' | 'patch' | 'put' | 'delete':  # HEAD, CONNECT, OPTIONS, TRACE
-                    self.method = item.upper()
-                case 'id':
-                    pass
-                case _:
-                    self.url += f'/{item}'
-
-            return self.__dict__.get(item, self)
-
-        def __call__(self, some_id: int = None, **params) -> Client._request:
-            if some_id:
-                if not isinstance(some_id, int):
-                    return ValueError('ID must be an integer!')
-                self.url += f'/{some_id}'
-
-            session = params.pop('session', None)
-            headers = params.pop('headers', None)
-            params = {k: v for k, v in params.items() if v}
-            self.params.update(params)
-
-            if self.method:
-                if not self.is_exists():
-                    raise
-                return Client._request(
-                    self.method,
-                    self.url,
-                    session=session,
-                    headers=headers,
-                    params=self.params,
-                )
-            else:
-                return self
 
     def __init__(
             self,
@@ -156,14 +158,14 @@ class Client:
 
     @limiter_5rps
     @limiter_90rpm
-    async def _request(
+    async def request(
             self,
             method: str,
             url: str,
             *,
             session: aiohttp.ClientSession = None,
             headers: dict = None,
-            **kwargs,  # TODO fix empty params in kwargs!
+            **kwargs,
     ):
         print(f"[{datetime.now()}] {method} {url} {headers} {kwargs}")  # TODO logging
         headers_ = {'User-Agent': self.application_name}
@@ -180,9 +182,8 @@ class Client:
 
                 response.raise_for_status()
 
-    @classmethod
-    def go(cls):
-        return cls.Builder(API_ROOT)
+    def go(self):
+        return Builder(self, API_ROOT)
 
     async def get_access_token(self, auth_code: Optional[str] = None) -> Dict | None:
         self.auth_code = auth_code or self.auth_code
@@ -193,7 +194,7 @@ class Client:
             'code': auth_code or self.auth_code,
             'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob'
         }
-        json_response = await self._request('POST', GET_TOKEN_ENDPOINT, params=params)
+        json_response = await self.request('POST', GET_TOKEN_ENDPOINT, params=params)
 
         # Here must be some Exception handler or smth
         # Code below must be invoked only if access token received successfully
