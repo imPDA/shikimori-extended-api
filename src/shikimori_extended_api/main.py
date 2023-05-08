@@ -218,10 +218,10 @@ class Client:
 
         headers = {'Authorization': f'Bearer {self.access_token}'}
         try:
-            info = await Client.go().users.whoami.get(headers=headers)
+            info = await self.go().users.whoami.get(headers=headers)
         except HTTPUnauthorized:
             await self.refresh_tokens()
-            info = await Client.go().users.whoami.get(headers=headers)
+            info = await self.go().users.whoami.get(headers=headers)
 
         return info
 
@@ -263,7 +263,7 @@ class Client:
         async with asyncio.TaskGroup() as group:
             for title in titles:
                 anime_info = group.create_task(
-                    self.__request_again_on_2_many_requests_ex(Client.go().animes.id(title['anime']['id']).get),
+                    self.__request_again_on_2_many_requests_ex(self.go().animes.id(title['anime']['id']).get),
                     name=f"ID{title['anime']['id']}"
                 )
                 tasks.append(anime_info)
