@@ -15,7 +15,7 @@ setup(
     url='https://github.com/imPDA/shikimori-extended-api',
     author='imPDA',
     author_email='impda@mail.ru',
-
+    package_dir={'': 'src'},
     packages=packages,
     install_requires=requirements,
 )
