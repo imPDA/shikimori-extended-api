@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import os
 import re
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List
@@ -12,13 +11,11 @@ from aiohttp.web_exceptions import HTTPUnauthorized, HTTPTooManyRequests
 from .limiter import Limiter
 from .enums import Status
 
-APPLICATION_NAME = os.environ.get('APPLICATION_NAME')
-CLIENT_ID = os.environ.get('CLIENT_ID')
-CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
+SHIKIMORI_URL = 'https://shikimori.me'
 
-AUTH_ENDPOINT = 'https://shikimori.me/oauth/authorize'
-GET_TOKEN_ENDPOINT = 'https://shikimori.me/oauth/token'
-API_ROOT = 'https://shikimori.me/api'
+AUTH_ENDPOINT = SHIKIMORI_URL + '/oauth/authorize'
+GET_TOKEN_ENDPOINT = SHIKIMORI_URL + '/oauth/token'
+API_ROOT = SHIKIMORI_URL + '/api'
 
 
 class Client:
@@ -124,6 +121,9 @@ class Client:
     def __init__(
             self,
             *,
+            application_name: str,
+            client_id: str,
+            client_secret: str,
             login: Optional[str] = None,
             password: Optional[str] = None,
             auth_code: Optional[str] = None,
@@ -131,6 +131,10 @@ class Client:
             refresh_token: Optional[str] = None,
             expires_at: Optional[str | datetime] = None,
     ):
+        self.application_name = application_name
+        self.client_id = client_id
+        self.client_secret = client_secret
+
         self.auth_code = auth_code
 
         self.access_token = access_token
