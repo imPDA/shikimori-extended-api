@@ -20,29 +20,27 @@ async def main():
 
     # 3) Запросить у пользователя код авторизации, используя auth_url этого приложения
 
-    code = input(f"Авторизайтесь на Shikimori по [ссылке]({shiki_api.auth_url}) и введите авторизационный код:")
-    print('Введён код:', code)  # печатать не обязательно, здесь - просто для демонстрации
+    code = input(f"Авторизайтесь на Shikimori по [ссылке]({shiki_api.auth_url}) и введите авторизационный код:\n")
+    print("Введён код:", code)  # печатать не обязательно, здесь - просто для демонстрации
 
     # 4) С этим кодом нужно получить токен доступа и токен для обновления
 
     tokens = await shiki_api.get_access_token(code)
-    print(tokens)  # печатать не обязательно, здесь - просто для демонстрации
+    print("Получены токены:", tokens)  # печатать не обязательно, здесь - просто для демонстрации
 
     # 4.1) Их можно сохранить для дальнейшего использования любым удобным способом
     # ...
 
     # 5) Токен нужен для получения доступа к некоторым эндпоинтам, например:
-    # GET /api/users/whoami - Show current user's brief info
+    # GET /api/users/whoami - Информация о пользователе, который авторизовал приложение
 
-    try:
-        print(await shiki_api.go().users.whoami.get())
-    except Exception as e:
-        print(e)
+    # Ничего не будет выведено, т.к. токен не указан
+    print(await shiki_api.go().users.whoami.get())
 
-        print(await shiki_api.go().users.whoami.get(headers={'Authorization': f'Bearer {shiki_api.access_token}'}))
+    # А здесь информация будет получена успешно
+    print(await shiki_api.go().users.whoami.get(headers={'Authorization': f'Bearer {shiki_api.access_token}'}))
 
-    # или что то же самое
-
+    # Или то же самое можно получить через встроенную функцию `get_current_user_info()`
     print(await shiki_api.get_current_user_info())
 
 
