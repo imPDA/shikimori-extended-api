@@ -5,7 +5,7 @@ with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 packages = [
-    'api',
+    'shikimori_extended_api',
 ]
 
 setup(
