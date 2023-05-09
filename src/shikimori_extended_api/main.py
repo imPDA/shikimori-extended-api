@@ -232,9 +232,12 @@ class Client:
             self,
             user_id: int,
             *,
-            status: Status = None,
+            status: Status | str = None,
             censored: bool = None
     ) -> List:
+        if isinstance(status, str):
+            status = Status(status)
+
         L, p, rates = 100, 1, []  # limit per request, current page, list of rates
         while True:
             r_ = await self.go().users.id(user_id).anime_rates(limit=L, status=status, censored=censored, page=p).get()
