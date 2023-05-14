@@ -1,1 +1,4 @@
 aiohttp~=3.8.4
+
+pydantic~=1.10.7
+setuptools~=65.5.1

@@ -6,6 +6,7 @@ with open('requirements.txt') as f:
 
 packages = [
     'shikimori_extended_api',
+    'shikimori_extended_api.datatypes'
 ]
 
 setup(
