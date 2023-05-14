@@ -35,13 +35,13 @@ class ShikimoriExtendedAPI:
 
     @property
     def auth_url(self):
-        params = {
+        q = {
             'client_id': self.client_id,
             'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob',
             'response_type': 'code',
             'scope': ''
         }
-        return f"{AUTH_ENDPOINT}?{urlencode(params)}"
+        return f"{AUTH_ENDPOINT}?{urlencode(q)}"
 
     @limiter_5rps
     @limiter_90rpm
@@ -70,14 +70,14 @@ class ShikimoriExtendedAPI:
         return Builder(self, API_ROOT)(headers=token and {'Authorization': f'Bearer {token.access_token}'})
 
     async def get_access_token(self, auth_code: str) -> ShikiToken:
-        params = {
+        data = {
             'grant_type': 'authorization_code',
             'client_id': self.client_id,
             'client_secret': self.client_secret,
             'code': auth_code,  # or self.auth_code,
             'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob'
         }
-        json_response = await self.request('POST', GET_TOKEN_ENDPOINT, params=params)
+        json_response = await self.request('POST', GET_TOKEN_ENDPOINT, data=data)
 
         return ShikiToken(
             access_token=json_response['access_token'] if isinstance(json_response['access_token'], str) else json_response['access_token'][0],
@@ -110,7 +110,8 @@ class ShikimoriExtendedAPI:
 
         L, p, rates = 100, 1, []  # limit per request, current page, list of rates
         while True:
-            r_ = await self.go().users.id(user_id).anime_rates(limit=L, status=status, censored=censored, page=p).get()
+            r_ = await self.go().users.id(user_id).anime_rates(limit=L, status=status.value, censored=censored, page=p)\
+                .get()
             rates.extend(r_[:L])
             if len(r_) <= L:
                 return rates
