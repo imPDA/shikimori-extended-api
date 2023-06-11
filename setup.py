@@ -11,7 +11,7 @@ packages = [
 
 setup(
     name='shikimori-extended-api',
-    version='dev',
+    version='v0.1.dev1',
 
     url='https://github.com/imPDA/shikimori-extended-api',
     author='imPDA',
