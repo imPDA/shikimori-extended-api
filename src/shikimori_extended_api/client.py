@@ -28,16 +28,18 @@ class ShikimoriExtendedAPI:
             application_name: str,
             client_id: str = None,
             client_secret: str = None,
+            redirect_uri: str = 'urn:ietf:wg:oauth:2.0:oob'
     ):
         self.application_name = application_name
         self.client_id = client_id
         self.client_secret = client_secret
+        self.redirect_uri = redirect_uri
 
     @property
     def auth_url(self):
         q = {
             'client_id': self.client_id,
-            'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob',
+            'redirect_uri': self.redirect_uri,
             'response_type': 'code',
             'scope': ''
         }
@@ -74,8 +76,8 @@ class ShikimoriExtendedAPI:
             'grant_type': 'authorization_code',
             'client_id': self.client_id,
             'client_secret': self.client_secret,
-            'code': auth_code,  # or self.auth_code,
-            'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob'
+            'code': auth_code,
+            'redirect_uri': self.redirect_uri
         }
         json_response = await self.request('POST', GET_TOKEN_ENDPOINT, data=data)
 
