@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime, timezone
+from datetime import timedelta, datetime
 
 from pydantic import BaseModel
 
@@ -11,4 +11,4 @@ class ShikiToken(BaseModel):
 
     @property
     def is_expired(self):
-        return datetime.now(tz=timezone.utc) > self.expires_at
+        return datetime.now() > self.expires_at
